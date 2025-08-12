@@ -3,9 +3,16 @@ import { useCourses } from '../context/CourseContext';
 import Navbar from '../components/Navbar';
 import { Plus, BookOpen, Users, Award, Settings, Edit2, Trash2, Eye, FileText } from 'lucide-react';
 
+type TabId = 'overview' | 'courses' | 'users' | 'certificates';
+interface Tab {
+  id: TabId;
+  label: string;
+  icon: React.ElementType;
+}
+
 export default function AdminPanel() {
   const { courses, createCourse } = useCourses();
-  const [activeTab, setActiveTab] = useState<'overview' | 'courses' | 'users' | 'certificates'>('overview');
+  const [activeTab, setActiveTab] = useState<TabId>('overview');
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [newCourse, setNewCourse] = useState({
     title: '',
@@ -31,7 +38,7 @@ export default function AdminPanel() {
     setShowCreateForm(false);
   };
 
-  const tabs = [
+  const tabs: Tab[] = [
     { id: 'overview', label: 'Overview', icon: Settings },
     { id: 'courses', label: 'Courses', icon: BookOpen },
     { id: 'users', label: 'Users', icon: Users },
@@ -62,7 +69,7 @@ export default function AdminPanel() {
               {tabs.map(tab => (
                 <button
                   key={tab.id}
-                  onClick={() => setActiveTab(tab.id as any)}
+                  onClick={() => setActiveTab(tab.id)}
                   className={`w-full flex items-center space-x-3 px-4 py-2 rounded-lg text-left transition-colors ${
                     activeTab === tab.id
                       ? 'bg-blue-100 text-blue-700'
