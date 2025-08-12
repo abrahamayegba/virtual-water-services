@@ -58,7 +58,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const login = async (email: string, password: string): Promise<boolean> => {
     const foundUser = mockUsers.find(u => u.email === email && u.password === password);
     if (foundUser) {
-      const { password: _, ...userWithoutPassword } = foundUser;
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { password: _password, ...userWithoutPassword } = foundUser;
       setUser(userWithoutPassword);
       localStorage.setItem('user', JSON.stringify(userWithoutPassword));
       return true;

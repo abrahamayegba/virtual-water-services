@@ -21,10 +21,11 @@ export default function QuizPage() {
     if (!showResults && timeLeft > 0) {
       const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
       return () => clearTimeout(timer);
-    } else if (timeLeft === 0) {
-      handleSubmitQuiz();
     }
-  }, [timeLeft, showResults]);
+    if (timeLeft === 0) {
+      void handleSubmitQuiz();
+    }
+  }, [timeLeft, showResults, handleSubmitQuiz]);
 
   if (!course || !quiz) {
     return (
@@ -46,7 +47,7 @@ export default function QuizPage() {
     setAnswers(prev => ({ ...prev, [questionId]: answerIndex }));
   };
 
-  const handleSubmitQuiz = () => {
+  const handleSubmitQuiz = async () => {
     const correctAnswers = quiz.questions.reduce((count, question) => {
       return count + (answers[question.id] === question.correctAnswer ? 1 : 0);
     }, 0);
@@ -55,7 +56,7 @@ export default function QuizPage() {
     const passed = score >= quiz.passingScore;
     
     if (passed) {
-      const certificateId = completeCourse(courseId!, score);
+      const certificateId = await completeCourse(courseId!, score);
       navigate(`/certificate/${certificateId}`);
     } else {
       setShowResults(true);

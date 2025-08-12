@@ -49,12 +49,12 @@ export default function LessonPage() {
     );
   }
 
-  const slidesModules = import.meta.glob(
+  const slidesModules: Record<string, { default: string }> = import.meta.glob(
     "../assets/ppt-slides/*.{png,jpg,jpeg}",
     { eager: true }
   );
 
-  const slides = Object.values(slidesModules).map((mod: any) => mod.default);
+  const slides = Object.values(slidesModules).map(mod => mod.default);
 
   const currentLessonIndex = course.lessons.findIndex((l) => l.id === lessonId);
   const previousLesson =
