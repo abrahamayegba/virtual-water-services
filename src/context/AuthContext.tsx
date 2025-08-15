@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext } from "react";
+import { useUser, useAuth as useClerkAuth } from '@clerk/clerk-react';
 
 interface User {
   id: string;
@@ -23,74 +24,46 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { user: clerkUser, isLoaded } = useUser();
+  const { signOut } = useClerkAuth();
 
-  // Mock users for demo (in production, this would connect to your backend)
-  const mockUsers = [
-    {
-      id: "1",
-      name: "Dawn Lawrie",
-      email: "dawnlawrie@waterservicesgroup.com",
-      company: "VirtualWaterServices",
-      contractorId: "ADM001",
-      isAdmin: true,
-      password: "admin123456",
-    },
-    {
-      id: "2",
-      name: "John Smith",
-      email: "petsathome@company.com",
-      company: "Smith Construction",
-      contractorId: "CON002",
-      isAdmin: false,
-      password: "password123456",
-    },
-  ];
-
-  useEffect(() => {
-    // Check for stored authentication
-    const storedUser = localStorage.getItem("user");
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    }
-    setLoading(false);
-  }, []);
+  // Transform Clerk user to our User interface
+  const user: User | null = clerkUser ? {
+    id: clerkUser.id,
+    name: clerkUser.fullName || clerkUser.firstName || 'User',
+    email: clerkUser.primaryEmailAddress?.emailAddress || '',
+    company: clerkUser.publicMetadata?.company as string || 'Unknown Company',
+    contractorId: clerkUser.publicMetadata?.contractorId as string || 'N/A',
+    isAdmin: clerkUser.publicMetadata?.isAdmin as boolean || false,
+    avatar: clerkUser.imageUrl
+  } : null;
 
   const login = async (email: string, password: string): Promise<boolean> => {
-    const foundUser = mockUsers.find(
-      (u) => u.email === email && u.password === password
-    );
-    if (foundUser) {
-      const { password: _, ...userWithoutPassword } = foundUser;
-      setUser(userWithoutPassword);
-      localStorage.setItem("user", JSON.stringify(userWithoutPassword));
-      return true;
-    }
-    return false;
+    // Clerk handles authentication through its components
+    // This is kept for interface compatibility
+    return true;
   };
 
   const register = async (
     userData: Omit<User, "id" | "isAdmin"> & { password: string }
   ): Promise<boolean> => {
-    // In production, this would make an API call
-    const newUser: User = {
-      ...userData,
-      id: Date.now().toString(),
-      isAdmin: false,
-    };
-    setUser(newUser);
-    localStorage.setItem("user", JSON.stringify(newUser));
+    // Clerk handles registration through its components
+    // This is kept for interface compatibility
     return true;
   };
 
   const logout = () => {
-    setUser(null);
-    localStorage.removeItem("user");
+    signOut();
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, register, logout, loading }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      login, 
+      register, 
+      logout, 
+      loading: !isLoaded 
+    }}>
       {children}
     </AuthContext.Provider>
   );

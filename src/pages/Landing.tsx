@@ -1,22 +1,14 @@
 import React, { useState } from 'react';
 import { Navigate } from 'react-router-dom';
+import { SignIn, SignUp, useUser } from '@clerk/clerk-react';
 import { useAuth } from '../context/AuthContext';
 import { HardHat, Shield, Award, Users, ChevronRight } from 'lucide-react';
 import logo from "../assets/logo.svg";
 import Footer from '../components/Footer';
 
 export default function Landing() {
-  const { user, login, register, loading } = useAuth();
+  const { user, loading } = useAuth();
   const [isLogin, setIsLogin] = useState(true);
-  const [formData, setFormData] = useState({
-    email: '',
-    password: '',
-    name: '',
-    company: '',
-    contractorId: ''
-  });
-  const [error, setError] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
   if (loading) {
     return (
@@ -29,36 +21,6 @@ export default function Landing() {
   if (user) {
     return <Navigate to="/dashboard" replace />;
   }
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    setIsSubmitting(true);
-
-    try {
-      let success = false;
-      
-      if (isLogin) {
-        success = await login(formData.email, formData.password);
-      } else {
-        success = await register({
-          email: formData.email,
-          password: formData.password,
-          name: formData.name,
-          company: formData.company,
-          contractorId: formData.contractorId
-        });
-      }
-
-      if (!success) {
-        setError(isLogin ? 'Invalid credentials' : 'Registration failed');
-      }
-    } catch (err) {
-      setError('An error occurred. Please try again.');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
@@ -175,117 +137,27 @@ export default function Landing() {
               </p>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-4">
-              {!isLogin && (
-                <>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Full Name
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      value={formData.name}
-                      onChange={(e) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          name: e.target.value,
-                        }))
-                      }
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Company
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      value={formData.company}
-                      onChange={(e) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          company: e.target.value,
-                        }))
-                      }
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Contractor ID
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      value={formData.contractorId}
-                      onChange={(e) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          contractorId: e.target.value,
-                        }))
-                      }
-                    />
-                  </div>
-                </>
-              )}
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Email
-                </label>
-                <input
-                  type="email"
-                  required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  value={formData.email}
-                  onChange={(e) =>
-                    setFormData((prev) => ({ ...prev, email: e.target.value }))
+            {isLogin ? (
+              <SignIn 
+                appearance={{
+                  elements: {
+                    formButtonPrimary: 'bg-blue-500 hover:bg-blue-600',
+                    card: 'shadow-none border-0'
                   }
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Password
-                </label>
-                <input
-                  type="password"
-                  required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  value={formData.password}
-                  onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      password: e.target.value,
-                    }))
+                }}
+                redirectUrl="/dashboard"
+              />
+            ) : (
+              <SignUp 
+                appearance={{
+                  elements: {
+                    formButtonPrimary: 'bg-blue-500 hover:bg-blue-600',
+                    card: 'shadow-none border-0'
                   }
-                />
-              </div>
-
-              {error && (
-                <div className="bg-red-50 text-red-700 p-3 rounded-md text-sm">
-                  {error}
-                </div>
-              )}
-
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className="w-full bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors disabled:opacity-50 flex items-center justify-center space-x-2"
-              >
-                {isSubmitting ? (
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                ) : (
-                  <>
-                    <span>{isLogin ? "Sign In" : "Create Account"}</span>
-                    <ChevronRight className="h-4 w-4" />
-                  </>
-                )}
-              </button>
-            </form>
+                }}
+                redirectUrl="/dashboard"
+              />
+            )}
 
             <div className="mt-6 text-center">
               <button
